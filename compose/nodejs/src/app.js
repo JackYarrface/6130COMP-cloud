@@ -48,3 +48,35 @@ var db = mongoose.connection;
 db.on('error', console.error.bind(console, 'MongoDB connection error:'));
 
 var Schema = mongoose.Schema;
+
+//Schema set up to cater for the data that is needed by the client.
+var UserSchema = new Schema({
+    AccountID: Number,
+    UserName: String,
+    TitleID: Number,
+    UserAction: String,
+    DateAndTime: Date,
+    InteractionPoint: String,
+    InteractionType: String
+  });
+  
+  var UserActionModel = mongoose.model('UserInteraction', UserSchema, 'userInteraction');
+  
+  //Send object back for analytics that matches the interaction point / type desired.
+  app.get('/', (req, res) => {
+      UserActionModel.find({},'interactionPoint interactionType dateAndTime', (err, userInteraction) => {
+        if(err) return handleError(err);
+        res.send(JSON.stringify(userInteraction))
+      }) 
+    })
+  
+  //Save a new user interaction.
+  app.post('/',  (req, res) => {
+  var newEntry = new userActionModel(req.body);
+  newEntry.save(function (err) {
+  if (err) res.send('Error');
+      res.send(JSON.stringify(req.body))
+  });
+  })
+  
+  //End of messege queueing service functions.
